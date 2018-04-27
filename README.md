@@ -111,8 +111,9 @@ Time-tracking
    operations: 1 hour estimated, **actual time 1h30**
 2. Setup build/test environment with docker-compose: 30 minutes estimated
    **actual time 10 minutes**
-3. Write service that executes Redis commands sequentially: 30 minutes
-   4. Write integration tests: key caching, retrieval, and expiry all tested: 45
-      minutes
-      5. Handle multiple concurrent access to proxy with a Redis pipeline: 30
-         minutes
+3. Write service that executes Redis commands sequentially: 30 minutes **actual
+   time 1 hour**
+4. Write integration tests: key caching, retrieval, and expiry all tested: 45
+  minutes **acutal time ???***
+5. Handle multiple concurrent access to proxy with a Redis pipeline: 30 minutes
+   **acutal time ???***
