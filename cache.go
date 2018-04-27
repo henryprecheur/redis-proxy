@@ -91,8 +91,8 @@ func (c *Cache) backgroundExpiry(period time.Duration) {
 	}
 }
 
-func (c *Cache) Process(expiryPeriod time.Duration) {
-	go c.backgroundExpiry(expiryPeriod)
+func (c *Cache) Process() {
+	go c.backgroundExpiry(time.Second)  // FIXME hardcoded value, should be config
 
 	for r := range c.Input {
 		val, ok = c.m.Load(r.Key)

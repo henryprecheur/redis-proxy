@@ -88,14 +88,15 @@ The cache is based on [sync.Map][], according to the documentation:
 
 > Loads, stores, and deletes run in amortized constant time.
 
-Time-based key expiries are triggered by a timer. The timer tracks the time to
-live for the next key to be expired. Once the timer is triggered the system
-removes the corresponding key from the cache and scans the cache to find when
-the next key to be expired and reset the timer with its expiry time. Because it
-scans the entire cache every time it removes a key this operation’s complexity
-is O(n) where n is the size of the cache. We could reduce the cost of scanning
-the cache by tracking keys’ expiry time in a [heap][], this would reduce the
-complexity of the scan to O(log(n)).
+The system tracks the next entries to expire via a priority queue (see
+priority_queue.go).
+
+Time-based key expiries are triggered by a timer, it runs every second. Once the
+timer is triggered the system removes the corresponding key from the cache and
+scans the cache to find when the next key to be expired until there's no key
+that needs to be removed. It uses a [heap][] as a priority list to reduce the
+complexity of the scan: A linear scan would be O(n), but by using a heap we
+reduce the complexity to O(log(n))
 
 [heap]: https://godoc.org/container/heap
 
