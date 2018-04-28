@@ -35,8 +35,8 @@ specify the address redis-proxy listens on, for example to listen only on the
 local interface you’d pass ‘localhost:8080’.
 
 You can also configure the cache via the -expire and -capacity options. For
-example to expire keys after 2 minutes of non-use or when we have more than 1000
-keys in the cache.
+example to expire keys after 2 minutes or when we have more than 1000 keys in
+the cache:
 
     $ redis-proxy -expire 2m -capacity 1000
 

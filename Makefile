@@ -1,5 +1,9 @@
-DOCKER=docker
-GO=go
-
 build:
-	${DOCKER} build . -t henryprecheur/redis-proxy
+	docker image pull golang:1.10-alpine
+	docker image pull redis
+	docker build . -t henryprecheur/redis-proxy
+
+test: build
+	docker-compose up
+
+all: test
