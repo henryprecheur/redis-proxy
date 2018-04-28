@@ -20,6 +20,7 @@ RUN cp redis-proxy /bin
 RUN go install
 RUN cp ./redis-proxy.sh /
 RUN chmod +x /redis-proxy.sh
+RUN ls /
 
 CMD ["/redis-proxy.sh"]
 ENTRYPOINT ["/redis-proxy.sh"]

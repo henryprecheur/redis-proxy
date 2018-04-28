@@ -6,7 +6,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    depends_on: ["redis"]
+    command: "/redis-proxy.sh"
   test:
+    depends_on: ["proxy"]
     build:
       context: .
       dockerfile: Dockerfile.test

@@ -19,15 +19,15 @@ func redisSet(t *testing.T, conn redis.Conn, key, value interface{}) {
 
 func TestCache(t *testing.T) {
 	time.Sleep(10) // wait for stuff to come up
-	conn, err := redis.Dial("tcp", "localhost:6379")
+	conn, err := redis.Dial("tcp", "redis:6379")
 	if err != nil {
 		t.FailNow()
 	}
 	redisSet(t, conn, "foo", "a")
 
-	resp, err := http.Get("http://localhost:8080/foo")
+	resp, err := http.Get("http://proxy:8080/foo")
 	if err != nil {
-		t.Fatal("err")
+		t.Fatalf("err: %s", err)
 	}
 	b, err := ioutil.ReadAll(resp.Body)
 	if bytes.Compare(b, []byte{'a'}) != 0 {
