@@ -15,8 +15,7 @@ RUN \
   curl https://glide.sh/get | sh
 
 RUN glide install
-RUN go build
+RUN go install
 
 EXPOSE 8080
 CMD ["redis-proxy"]
-# ENTRYPOINT /app/redis-proxy

@@ -73,44 +73,59 @@ func (c *Cache) expireKeys() {
 
 	// Remove expired entries if needed
 	now := time.Now()
-	for c.expiryQueue.Oldest().After(now) {
-		item := heap.Pop(c.expiryQueue)
-		c.m.Delete(item.Key)
+	if c.expiryQueue.Len() > 0 {
+		for c.expiryQueue.Oldest().After(now) {
+			item := heap.Pop(c.expiryQueue).(*Item)
+			c.m.Delete(item.Key)
+			if c.expiryQueue.Len() == 0 {
+				break
+			}
+		}
 	}
-
-	c.expireLock.Unlock()
 }
 
-// garbage collect expired keys every period
+// garbage collect expired keys every expiry period
 func (c *Cache) backgroundExpiry(period time.Duration) {
-	ticker = time.NewTicker(period)
+	ticker := time.NewTicker(period)
 	for {
 		select {
 		case <-ticker.C:
+			c.expireLock.Lock()
 			c.expireKeys()
+			c.expireLock.Unlock()
 		}
 	}
 }
 
 func (c *Cache) Process() {
-	go c.backgroundExpiry(time.Second)  // FIXME hardcoded value, should be config
+	period := time.Second // FIXME hardcoded value, should be config
+	go c.backgroundExpiry(period)
 
 	for r := range c.Input {
-		val, ok = c.m.Load(r.Key)
+		i, ok := c.m.Load(r.Key)
 		if !ok {
+			log.Println("cache:", r.Key, "not found, forwarding to Redis")
 			// key not found, we forward the request to the Redis backend and
 			// wait for the result in a separate goroutine
 			go func() {
-				c := make(chan Response)
-				c.redisQueue <- Request{Key: r.Key, Output: c}
-				resp := <-c // wait for the Redis backend's response
+				ch := make(chan *Response)
+				// send request to redis
+				c.redisChan <- &Request{Key: r.Key, Output: ch}
+				// wait for the Redis backend's response
+				resp := <-ch
+				log.Println("cache: redis replied")
 				// Add the response to our cache
-				if resp.Err != nil {
-					c.AddKey(r.Key, resp.Result)
+				if resp.Err == nil {
+					c.addKey(r.Key, resp.Result)
 				}
-			}
+				log.Println("cache: forward redis response to http")
+				// Forward response to HTTP front-end
+				r.Output <- resp
+			}()
+		} else {
+			log.Println("cache:", r.Key, "found")
+			item := i.(*Item)
+			r.Output <- &Response{Result: item.Value}
 		}
-		// Forward response to HTTP front-end
-		r.Output <- resp
 	}
 }

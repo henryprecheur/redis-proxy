@@ -7,14 +7,6 @@ import (
 	"time"
 )
 
-// Entry for our priority list
-type Item struct {
-	Key    string
-	Expiry *time.Time // pointer to the value stored in the map
-	// The index is needed by update and is maintained by the heap.Interface methods.
-	index int // The index of the item in the heap.
-}
-
 // implements heap.Interface and holds Items.
 type PriorityQueue []*Item
 
@@ -27,7 +19,7 @@ func NewPriorityQueue() *PriorityQueue {
 func (pq PriorityQueue) Len() int { return len(pq) }
 
 func (pq PriorityQueue) Less(i, j int) bool {
-	return pq[i].expiry.Before(*pq[j].expiry)
+	return pq[i].Expiry.Before(pq[j].Expiry)
 }
 
 func (pq PriorityQueue) Swap(i, j int) {
@@ -53,12 +45,6 @@ func (pq *PriorityQueue) Pop() interface{} {
 }
 
 // Return the time of the oldest entry in the priority queue
-func (pq *PriorityQueue) Oldest() *time.Time {
-	return pq[len(pq)-1].expiry
-}
-
-// update modifies the priority and value of an Item in the queue.
-func (pq *PriorityQueue) update(item *Item, expiry *time.Time) {
-	item.expiry = expiry
-	heap.Fix(pq, item.index)
+func (pq *PriorityQueue) Oldest() time.Time {
+	return (*pq)[len(*pq)-1].Expiry
 }

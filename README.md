@@ -118,21 +118,23 @@ Cached queries are constant time operations.
 Known-issues
 ------------
 
-Error handling: if the Redis backing server goes down for example, the
-redis-proxy won’t reconnect or retry failed queries.
+I didn’t have enough time to work on this:
 
-
+- Redis client protocol: the service speaks only HTTP, I missed that requirement
+  when I got started. Adding support for it requires extra-time.
+- Error handling is poor: if the Redis backing server goes down for example, the
+  redis-proxy won’t reconnect or retry failed queries: it will just exit.
 
 Time-tracking
 -------------
 
 1. Design & write documentation, includes architecture & complexity of caches
-   operations: 1 hour estimated, **actual time 1h30**
+   operations: 1 hour estimated, **actual time 1h45**
 2. Setup build/test environment with docker-compose: 30 minutes estimated
    **actual time 10 minutes**
 3. Write service that executes Redis commands sequentially: 30 minutes **actual
-   time 1 hour**
+   time 2 hours**
 4. Write integration tests: key caching, retrieval, and expiry all tested: 45
-  minutes **actual time ???***
+  minutes **actual time 30 minutes**
 5. Handle multiple concurrent access to proxy with a Redis pipeline: 30 minutes
-   **acutal time ???***
+   **included in step #2**
