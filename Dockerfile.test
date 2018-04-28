@@ -14,12 +14,7 @@ RUN apk add --no-cache git curl
 RUN curl https://glide.sh/get | sh
 
 RUN glide install
-RUN go build
-RUN ls
-RUN cp redis-proxy /bin
-RUN go install
-RUN cp ./redis-proxy.sh /
-RUN chmod +x /redis-proxy.sh
+RUN cp test.sh /
+RUN chmod +x /test.sh
 
-CMD ["/redis-proxy.sh"]
-ENTRYPOINT ["/redis-proxy.sh"]
+CMD ["/test.sh"]

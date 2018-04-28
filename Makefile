@@ -5,5 +5,6 @@ build:
 
 test: build
 	docker-compose up
+	docker-compose down
 
 all: test
