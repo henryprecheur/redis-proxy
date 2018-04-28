@@ -2,14 +2,18 @@ package main
 
 import (
 	"container/heap"
+	"log"
 	"sync"
 	"time"
 )
 
-// Value stored in our map
-type Value struct {
+// Value stored in our map and priority queue
+type Item struct {
+	Key    string
 	Value  []byte
 	Expiry time.Time
+	// The index is needed by update and is maintained by the heap.Interface methods.
+	index int // The index of the item in the heap.
 }
 
 type Cache struct {
@@ -19,23 +23,23 @@ type Cache struct {
 	expireLock sync.Mutex
 
 	// configuration
-	maxSize    uint
+	maxSize    int
 	timeToLive time.Duration
 
 	// the cache's own input
-	Input chan Request
-	// the redis backend input when keys aren't cached
-	redisInput chan Request
+	Input chan *Request
+	// the redis backend input for when keys aren't cached
+	redisChan chan *Request
 }
 
-func NewCache(redisQueue chan Request, maxSize uint, timeToLive time.Duration) *Cache {
+func NewCache(redisChan chan *Request, maxSize int, timeToLive time.Duration) *Cache {
 	c := new(Cache)
 	c.expiryQueue = NewPriorityQueue()
 
 	c.maxSize = maxSize
 	c.timeToLive = timeToLive
-	c.redisInput = redisQueue
-	c.Input = make(chan Request, 64) // FIXME hardcoded value
+	c.redisChan = redisChan
+	c.Input = make(chan *Request, 64) // FIXME hardcoded value
 	return c
 }
 
@@ -43,28 +47,25 @@ func (c *Cache) expiryTime() time.Time {
 	return time.Now().Add(c.timeToLive)
 }
 
-func (c *Cache) AddKey(key string, value []byte) {
-	val := Value{Value: value, Expiry: c.expiryTime()}
-	c.m.Store(key, val)
+func (c *Cache) addKey(key string, value []byte) {
+	item := &Item{Key: key, Value: value, Expiry: c.expiryTime()}
+	c.m.Store(key, item)
 
 	// update the priority queue in the background
 	go func() {
-		e := Item{key: key, expiry: &(val.Expiry)}
 		c.expireLock.Lock()
-		heap.Push(c.expiryQueue, e)
-		c.expireLock.Unlock()
-
+		heap.Push(c.expiryQueue, item)
 		c.expireKeys()
+		c.expireLock.Unlock()
 	}()
 }
 
 func (c *Cache) expireKeys() {
-	c.expireLock.Lock()
-
+	log.Println("cache: remove expired keys")
 	// Remove the extra entries in the expiry queue if needed
-	if x := len(c.expiryList) - c.maxSize; x > 0 {
-		for x {
-			item := heap.Pop(c.expiryQueue)
+	if x := c.expiryQueue.Len() - c.maxSize; x > 0 {
+		for x > 0 {
+			item := heap.Pop(c.expiryQueue).(*Item)
 			c.m.Delete(item.Key)
 			x -= 1
 		}
