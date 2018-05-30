@@ -112,32 +112,3 @@ Uncached queries have a complexity of O(log(n)) because we need to insert the
 new value into the priority queue.
 
 Cached queries are constant time operations.
-
-
-Time-tracking
--------------
-
-1. Design & write documentation, includes architecture & complexity of caches
-   operations: 1 hour estimated, **actual time 2h**
-2. Setup build/test environment with docker-compose: 30 minutes estimated
-   **actual time 20 minutes**
-3. Write service that executes Redis commands sequentially: 30 minutes **actual
-   time 2h30 hours**
-4. Write integration tests: key caching, retrieval, and expiry all tested: 45
-  minutes **actual time 30 minutes**
-5. Handle multiple concurrent access to proxy with a Redis pipeline: 30 minutes
-   **included in step #2**
-
-Known-issues
-------------
-
-- Redis client protocol: the service speaks only HTTP, I missed that requirement
-  when I got started. Adding support for it requires too much extra-time.
-- Error handling is poor: if the Redis backing server goes down for example, the
-  redis-proxy won’t reconnect or retry failed queries: it will just exit or
-  maybe block.
-- Testing isn’t working limited: I ran out of time when writing the tests, I got
-  something basic working but most edge cases aren’t tested.
-- I used more than 4 hours: I struggled to get the cache validation & expiry
-  right, so it took me much longer that expected to write version the proxy. I
-  wrote a quick test and that’s about all I could do with the given time
